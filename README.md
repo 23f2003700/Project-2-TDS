@@ -3,8 +3,6 @@
 > Academic Project – IIT Madras (Data Science Program)  
 > Automated quiz-solving system using headless browser automation (Playwright) and Groq LLM API for data analysis quizzes.
 
-[Live Deployment](http://tdsaaryanp2.us-east-1.elasticbeanstalk.com) • [Repository](https://github.com/23f2003700/Project-2-TDS)  
-
 ---
 
 ## Table of Contents
