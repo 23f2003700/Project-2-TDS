@@ -1,0 +1,44 @@
+# Environment variables
+.env
+.env.example
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+log/
+*.log
+
+# Deployment files and scripts
+*.ps1
+*.py
+*.zip
+*.txt
+DEPLOYMENT*.md
+PROJECT_SUMMARY.md
+QUICKSTART.md
+COMMANDS.md
+
+# AWS Elastic Beanstalk
+.elasticbeanstalk/
+.ebextensions/
+
+# Docker
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# Test results
+playwright-report/
+test-results/
