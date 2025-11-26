@@ -74,6 +74,11 @@ CRITICAL RULES:
 5. For base64 answers, provide the complete data URI
 6. Double-check all calculations
 7. If you need to write code, provide executable Python code
+8. IMPORTANT: If a question shows example JSON structure with fields like "email", "secret", "answer" - 
+   just provide the VALUE for the "answer" field, not the whole JSON structure.
+   The quiz system will automatically add email, secret, and url fields.
+9. For demo/test questions asking what to submit, respond with "test" or the specific value requested.
+10. Never include email, secret, or url in your answer - those are added by the system.
 
 Be extremely precise. Wrong answers are penalized.`;
 

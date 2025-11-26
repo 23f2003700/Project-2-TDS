@@ -597,19 +597,57 @@ New answer:`;
 }
 
 /**
+ * Ensure answer is properly formatted as a string for submission
+ */
+function formatAnswerForSubmission(answer) {
+  // If answer is null/undefined, return empty string
+  if (answer === null || answer === undefined) {
+    return '';
+  }
+  
+  // If answer is a boolean, return lowercase string
+  if (typeof answer === 'boolean') {
+    return answer.toString();
+  }
+  
+  // If answer is a number, return as string
+  if (typeof answer === 'number') {
+    return answer.toString();
+  }
+  
+  // If answer is an object/array, check if it has an "answer" field
+  if (typeof answer === 'object') {
+    // If it's a JSON object with an "answer" field, extract it
+    if (answer.answer !== undefined) {
+      return formatAnswerForSubmission(answer.answer);
+    }
+    // Otherwise stringify the object
+    return JSON.stringify(answer);
+  }
+  
+  // If it's already a string, return as-is
+  return String(answer);
+}
+
+/**
  * Submit answer to quiz endpoint
  */
 async function submitAnswer(submissionUrl, answer, email, secret, quizUrl) {
   const fetch = require('node-fetch');
   
+  // CRITICAL: Ensure answer is always a string
+  const formattedAnswer = formatAnswerForSubmission(answer);
+  
   const payload = {
     email,
     secret,
     url: quizUrl,
-    answer
+    answer: formattedAnswer
   };
 
   logger.info(`Submitting to: ${submissionUrl}`);
+  logger.info(`Original answer type: ${typeof answer}`);
+  logger.info(`Formatted answer: ${formattedAnswer.substring(0, 200)}`);
   logger.info(`Payload: ${JSON.stringify(payload).substring(0, 500)}`);
 
   try {
