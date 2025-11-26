@@ -1,6 +1,6 @@
 /**
  * Enhanced Multi-LLM Service
- * Supports: Groq (Llama 3.3), OpenAI (GPT-4), Claude, with fallback chains
+ * Supports: Groq (Llama 3.3), Google Gemini, OpenAI (GPT-4), Claude with fallback chains
  */
 
 const Groq = require('groq-sdk');
@@ -10,11 +10,21 @@ const logger = require('../utils/logger');
 let groq = null;
 let openai = null;
 let anthropic = null;
+let gemini = null;
 
 if (process.env.GROQ_API_KEY) {
   groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
   });
+}
+
+// Lazy-load Google Gemini
+function getGemini() {
+  if (!gemini && process.env.GOOGLE_API_KEY) {
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    gemini = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+  }
+  return gemini;
 }
 
 // Lazy-load OpenAI and Anthropic
@@ -112,6 +122,23 @@ async function analyzeWithFallback(prompt, options = {}) {
     }
   }
 
+  // Try Google Gemini fallback (FREE!)
+  const geminiClient = getGemini();
+  if (geminiClient) {
+    try {
+      logger.debug('Falling back to Google Gemini');
+      const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const result = await model.generateContent(`${systemPrompt}\n\n${prompt}`);
+      const response = result.response.text();
+      if (response.trim()) {
+        logger.debug('Gemini succeeded');
+        return response.trim();
+      }
+    } catch (error) {
+      logger.warn('Gemini fallback failed:', error.message);
+    }
+  }
+
   // Try OpenAI fallback
   const openaiClient = getOpenAI();
   if (openaiClient) {
@@ -160,7 +187,35 @@ async function analyzeWithFallback(prompt, options = {}) {
  * Analyze text with vision capability for images
  */
 async function analyzeWithVision(base64Image, question) {
-  // Try OpenAI Vision first (better quality)
+  // Try Gemini Vision first (FREE and good quality)
+  const geminiClient = getGemini();
+  if (geminiClient) {
+    try {
+      logger.debug('Analyzing with Gemini Vision');
+      const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      
+      // Extract base64 data and mime type
+      const matches = base64Image.match(/^data:(.+);base64,(.+)$/);
+      if (matches) {
+        const mimeType = matches[1];
+        const base64Data = matches[2];
+        
+        const result = await model.generateContent([
+          { text: `${question}\n\nProvide only the direct answer.` },
+          { inlineData: { mimeType, data: base64Data } }
+        ]);
+        const response = result.response.text();
+        if (response.trim()) {
+          logger.debug('Gemini Vision succeeded');
+          return response.trim();
+        }
+      }
+    } catch (error) {
+      logger.warn('Gemini Vision failed:', error.message);
+    }
+  }
+
+  // Try OpenAI Vision (better quality)
   const openaiClient = getOpenAI();
   if (openaiClient) {
     try {
