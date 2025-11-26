@@ -47,7 +47,7 @@ function getAnthropic() {
 // Model configurations
 const MODELS = {
   GROQ_LLAMA: 'llama-3.3-70b-versatile',
-  GROQ_LLAMA_VISION: 'llama-3.2-90b-vision-preview',
+  GROQ_LLAMA_VISION: 'llama-3.2-11b-vision-preview', // Updated: 90b was decommissioned
   GROQ_MIXTRAL: 'mixtral-8x7b-32768',
   WHISPER: 'whisper-large-v3-turbo'
 };
@@ -190,8 +190,12 @@ async function analyzeWithFallback(prompt, options = {}) {
 
 /**
  * Analyze text with vision capability for images
+ * Supports both base64 data URLs and regular image URLs
  */
-async function analyzeWithVision(base64Image, question) {
+async function analyzeWithVision(imageInput, question) {
+  const isDataUrl = imageInput.startsWith('data:');
+  const isUrl = imageInput.startsWith('http');
+  
   // Try Gemini Vision first (FREE and good quality)
   const geminiClient = getGemini();
   if (geminiClient) {
@@ -199,15 +203,28 @@ async function analyzeWithVision(base64Image, question) {
       logger.debug('Analyzing with Gemini Vision');
       const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash' });
       
-      // Extract base64 data and mime type
-      const matches = base64Image.match(/^data:(.+);base64,(.+)$/);
-      if (matches) {
-        const mimeType = matches[1];
-        const base64Data = matches[2];
-        
+      let imagePart;
+      if (isDataUrl) {
+        // Extract base64 data and mime type
+        const matches = imageInput.match(/^data:(.+);base64,(.+)$/);
+        if (matches) {
+          const mimeType = matches[1];
+          const base64Data = matches[2];
+          imagePart = { inlineData: { mimeType, data: base64Data } };
+        }
+      } else if (isUrl) {
+        // For URLs, fetch and convert to base64
+        const response = await fetch(imageInput);
+        const arrayBuffer = await response.arrayBuffer();
+        const base64Data = Buffer.from(arrayBuffer).toString('base64');
+        const mimeType = response.headers.get('content-type') || 'image/jpeg';
+        imagePart = { inlineData: { mimeType, data: base64Data } };
+      }
+      
+      if (imagePart) {
         const result = await model.generateContent([
           { text: `${question}\n\nProvide only the direct answer.` },
-          { inlineData: { mimeType, data: base64Data } }
+          imagePart
         ]);
         const response = result.response.text();
         if (response.trim()) {
@@ -232,7 +249,7 @@ async function analyzeWithVision(base64Image, question) {
             role: 'user',
             content: [
               { type: 'text', text: `${question}\n\nProvide only the direct answer.` },
-              { type: 'image_url', image_url: { url: base64Image } }
+              { type: 'image_url', image_url: { url: imageInput } }
             ]
           }
         ],
@@ -255,7 +272,7 @@ async function analyzeWithVision(base64Image, question) {
             role: 'user',
             content: [
               { type: 'text', text: `${question}\n\nProvide only the direct answer.` },
-              { type: 'image_url', image_url: { url: base64Image } }
+              { type: 'image_url', image_url: { url: imageInput } }
             ]
           }
         ],
@@ -273,8 +290,17 @@ async function analyzeWithVision(base64Image, question) {
   if (anthropicClient) {
     try {
       logger.debug('Analyzing with Claude Vision');
-      const mediaType = base64Image.includes('png') ? 'image/png' : 'image/jpeg';
-      const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+      // Claude needs base64 data - convert URL if needed
+      let base64Data, mediaType;
+      if (isDataUrl) {
+        mediaType = imageInput.includes('png') ? 'image/png' : 'image/jpeg';
+        base64Data = imageInput.replace(/^data:image\/\w+;base64,/, '');
+      } else if (isUrl) {
+        const response = await fetch(imageInput);
+        const arrayBuffer = await response.arrayBuffer();
+        base64Data = Buffer.from(arrayBuffer).toString('base64');
+        mediaType = response.headers.get('content-type') || 'image/jpeg';
+      }
       
       const response = await anthropicClient.messages.create({
         model: 'claude-3-5-sonnet-20241022',
