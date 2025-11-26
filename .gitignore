@@ -1,6 +1,5 @@
-# Environment variables
+# Environment variables (keep .env.example as template)
 .env
-.env.example
 
 # Dependencies
 node_modules/
@@ -19,6 +18,13 @@ DEPLOYMENT*.md
 PROJECT_SUMMARY.md
 QUICKSTART.md
 COMMANDS.md
+
+# Test files with potential secrets
+test-*.js
+local-*.js
+quiz-monitor.js
+quiz-server.js
+*-test.js
 
 # AWS Elastic Beanstalk
 .elasticbeanstalk/

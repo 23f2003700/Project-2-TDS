@@ -80,9 +80,9 @@ app.get('/quiz', (req, res) => {
       url: 'Quiz URL to solve'
     },
     example_request: {
-      email: '23f2003700@ds.study.iitm.ac.in',
-      secret: 'iitm-quiz-secret-23f2003700-2025',
-      url: 'https://tds-llm-analysis.s-anand.net/demo'
+      email: 'your-email@ds.study.iitm.ac.in',
+      secret: 'your-secret-key',
+      url: 'https://example.com/quiz'
     },
     response_codes: {
       200: 'Valid request, quiz processed',
