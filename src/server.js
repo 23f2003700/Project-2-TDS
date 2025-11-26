@@ -1,11 +1,22 @@
 /**
- * Express API Server
+ * Express API Server v2.0
+ * Enhanced quiz-solving agent with multi-LLM support
  * Endpoints: GET /, GET /health, GET /quiz, POST /quiz
  */
 
 require('dotenv').config();
 const express = require('express');
-const { solveQuiz } = require('./quiz-solver');
+
+// Use enhanced quiz solver if available
+let solveQuiz;
+try {
+  solveQuiz = require('./quiz-solver-v2').solveQuiz;
+  console.log('✅ Using enhanced quiz solver v2.0');
+} catch (e) {
+  solveQuiz = require('./quiz-solver').solveQuiz;
+  console.log('⚠️ Fallback to basic quiz solver');
+}
+
 const { launchBrowser, closeBrowser } = require('./services/browser');
 const logger = require('./utils/logger');
 
@@ -25,14 +36,24 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'LLM Quiz Solver API',
-    version: '1.0.0',
-    description: 'Automated quiz-solving system using Playwright and Groq LLM',
+    version: '2.0.0',
+    description: 'Intelligent quiz-solving agent using multi-LLM architecture (Groq + OpenAI + Claude)',
     endpoints: {
       health: 'GET /health - Health check',
       quiz_info: 'GET /quiz - API documentation',
       quiz_solve: 'POST /quiz - Solve quiz (requires email, secret, url)'
     },
     student: process.env.STUDENT_EMAIL,
+    capabilities: [
+      'Multi-LLM with fallback chains (Groq → OpenAI → Claude)',
+      'Python code execution for calculations',
+      'PDF, CSV, Excel, JSON processing',
+      'Image analysis (GPT-4V/Claude Vision)',
+      'Audio transcription (Whisper)',
+      'Web scraping and API calls',
+      'Intelligent question type detection',
+      'Automatic retry with different strategies'
+    ],
     status: 'running'
   });
 });
@@ -69,11 +90,15 @@ app.get('/quiz', (req, res) => {
       403: 'Invalid secret'
     },
     features: [
+      'Multi-LLM architecture with fallback chains',
       'JavaScript-rendered quiz pages (Playwright)',
-      'Multiple question types (text, image, audio, CSV, PDF)',
-      'Groq LLM API for analysis (Llama 3.3 70B + Whisper)',
-      'Automatic retry logic (up to 3 attempts)',
-      'Quiz chain following',
+      'Multiple question types (text, image, audio, CSV, PDF, JSON)',
+      'Python code execution for complex calculations',
+      'Image analysis with Vision models',
+      'Audio transcription with Whisper',
+      'Intelligent question type detection (14+ types)',
+      'Automatic retry logic with different strategies',
+      'Quiz chain following (up to 20 quizzes)',
       '3-minute time limit per quiz chain'
     ]
   });
