@@ -6,14 +6,16 @@
 const axios = require('axios');
 const logger = require('../utils/logger');
 
-async function submitAnswer(submissionUrl, answer, email, secret) {
+async function submitAnswer(submissionUrl, answer, email, secret, quizUrl) {
   try {
     logger.info(`Submitting answer to: ${submissionUrl}`);
     logger.debug('Answer:', answer);
+    logger.debug('Quiz URL:', quizUrl);
 
     const response = await axios.post(submissionUrl, {
       email: email,
       secret: secret,
+      url: quizUrl,  // Required: the URL of the quiz being answered
       answer: answer
     }, {
       headers: {

@@ -102,10 +102,13 @@ async function solveQuizPage(url, email, secret, startTime) {
       const analysis = analyzeQuestion(questionData.text, questionData.links);
       logger.info(`🔍 Strategy: ${analysis.strategy.type}`);
 
-      // Get submission URL
-      const submissionUrl = extractSubmissionUrl(questionData.text) || 
-                           questionData.formAction ||
-                           url.replace(/\/quiz.*/, '/submit');
+      // Get submission URL - for tds-llm-analysis, always use /submit
+      let submissionUrl = extractSubmissionUrl(questionData.text) || questionData.formAction;
+      if (!submissionUrl) {
+        // Default to same origin /submit
+        const urlObj = new URL(url);
+        submissionUrl = `${urlObj.origin}/submit`;
+      }
       logger.info(`📮 Submit to: ${submissionUrl}`);
 
       // Solve based on strategy
