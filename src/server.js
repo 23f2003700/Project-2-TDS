@@ -242,6 +242,64 @@ process.on('SIGTERM', async () => {
   await closeBrowser();
   process.exit(0);
 });
+// POST /server - Proxy endpoint to forward requests
+app.post('/server', async (req, res) => {
+  try {
+    const { targetUrl, body } = req.body;
 
+    // Validate required fields
+    if (!targetUrl) {
+      return res.status(400).json({
+        error: 'Missing targetUrl',
+        message: 'targetUrl is required in the request body'
+      });
+    }
+
+    // Validate URL format
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      return res.status(400).json({
+        error: 'Invalid URL',
+        message: 'targetUrl must start with http:// or https://'
+      });
+    }
+
+    logger.info(`Proxying POST request to: ${targetUrl}`);
+
+    // Make the POST request to the target URL
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body || {})
+    });
+
+    const responseData = await response.text();
+    
+    // Try to parse as JSON
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseData);
+    } catch {
+      parsedResponse = responseData;
+    }
+
+    logger.info(`Proxy response status: ${response.status}`);
+
+    res.status(response.status).json({
+      success: response.ok,
+      status: response.status,
+      targetUrl: targetUrl,
+      response: parsedResponse
+    });
+
+  } catch (error) {
+    logger.error('Proxy error:', error.message);
+    res.status(500).json({
+      error: 'Proxy failed',
+      message: error.message
+    });
+  }
+});
 // Start the server
 startServer();
