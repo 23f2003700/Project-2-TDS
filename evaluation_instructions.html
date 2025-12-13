@@ -1,0 +1,17 @@
+﻿<!doctype html>
+<title>Project 2 entry</title>
+<h1>/project2</h1>
+<p>How to play:</p>
+<ul>
+  <li>Start by POSTing JSON to <code><span class="origin"></span>/submit</code> with <code>{ email, secret, url, answer }</code>, using <code>url</code> = <code><span class="origin"></span>/project2</code>.</li>
+  <li>After each submission, the response tells you if it is correct and, if allowed, the <strong>next URL</strong>. Open that URL in the browser to read the task-specific instructions.</li>
+  <li>Each task page clearly states the required answer format to unlock the next URL. Difficulty 1â2 always reveal the next link; difficulty 3â5 reveal it only when correct.</li>
+  <li>Some steps are personalized to your email (noted on the step page). Steps marked âNot personalizedâ accept the same answer for everyone.</li>
+</ul>
+<script type="module">
+for (const el of document.querySelectorAll('.origin')) {
+  el.textContent = window.location.origin;
+}
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"b06f0a663724416db243af8e829604fc","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+

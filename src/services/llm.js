@@ -131,8 +131,8 @@ async function analyzeWithFallback(prompt, options = {}) {
   const geminiClient = getGemini();
   if (geminiClient) {
     try {
-      logger.debug('Falling back to Google Gemini');
-      const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      logger.debug('Falling back to Google Gemini 2.0 Flash Experimental');
+      const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
       const result = await model.generateContent(`${systemPrompt}\n\n${prompt}`);
       const response = result.response.text();
       if (response.trim()) {
@@ -200,8 +200,8 @@ async function analyzeWithVision(imageInput, question) {
   const geminiClient = getGemini();
   if (geminiClient) {
     try {
-      logger.debug('Analyzing with Gemini Vision');
-      const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      logger.debug('Analyzing with Gemini 2.0 Flash Experimental Vision');
+      const model = geminiClient.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
       
       let imagePart;
       if (isDataUrl) {

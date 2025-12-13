@@ -180,6 +180,49 @@ app.post('/quiz', async (req, res) => {
   }
 });
 
+// POST /proxy - Forward requests to external URLs (makes it look like requests come from this server)
+app.post('/proxy', async (req, res) => {
+  try {
+    const { targetUrl, body } = req.body;
+    
+    if (!targetUrl) {
+      return res.status(400).json({
+        error: 'Missing targetUrl',
+        message: 'targetUrl is required'
+      });
+    }
+    
+    logger.info('Proxying request to:', targetUrl);
+    
+    // Dynamic import for node-fetch
+    const fetch = (await import('node-fetch')).default;
+    
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'LLM-Quiz-Solver/2.0'
+      },
+      body: JSON.stringify(body || {})
+    });
+    
+    const responseData = await response.json();
+    
+    res.json({
+      success: response.ok,
+      status: response.status,
+      response: responseData
+    });
+    
+  } catch (error) {
+    logger.error('Proxy error:', error);
+    res.status(500).json({
+      error: 'Proxy failed',
+      message: error.message
+    });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
